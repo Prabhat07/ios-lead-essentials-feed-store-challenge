@@ -49,10 +49,11 @@ public final class CoreDataFeedStore: FeedStore {
 			do {
 				let managedCache = try ManagedCache.uniqueInstance(in: context)
 				managedCache.timestamp = timestamp
-				managedCache.feed = ManagedFeedImage.images(form: feed, in: context)
+				managedCache.feed = ManagedFeedImage.images(from: feed, in: context)
 				try context.save()
 				completion(nil)
 			} catch {
+				context.rollback()
 				completion(error)
 			}
 		}
@@ -92,7 +93,7 @@ private class ManagedFeedImage: NSManagedObject {
 	@NSManaged var url: URL
 	@NSManaged var cache: ManagedCache
 
-	static func images(form localFeed: [LocalFeedImage], in context: NSManagedObjectContext) -> NSOrderedSet {
+	static func images(from localFeed: [LocalFeedImage], in context: NSManagedObjectContext) -> NSOrderedSet {
 		return NSOrderedSet(array: localFeed.map { local in
 			let managed = ManagedFeedImage(context: context)
 			managed.id = local.id
